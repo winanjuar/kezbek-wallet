@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   HttpCode,
+  HttpStatus,
   InternalServerErrorException,
   Logger,
   Post,
@@ -45,7 +46,12 @@ export class AppController {
       this.logger.log(
         `[POST, /] Write transaction ${newTransaction.transaction_id} of customer ${newTransaction.customer_id} successfully`,
       );
-      return newTransaction;
+
+      return new CreateTransactionResponseDto(
+        HttpStatus.CREATED,
+        `Create transaction successfully`,
+        newTransaction,
+      );
     } catch (error) {
       this.logger.log(`[POST, /] ${error}`);
       throw new InternalServerErrorException(error);
