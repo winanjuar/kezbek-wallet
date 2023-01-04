@@ -7,6 +7,7 @@ import {
   Logger,
   Post,
 } from '@nestjs/common';
+import { EventPattern, Payload } from '@nestjs/microservices';
 import {
   ApiBadRequestResponse,
   ApiBody,
@@ -77,5 +78,27 @@ export class AppController {
       this.logger.log(`[POST, /] ${error}`);
       throw new InternalServerErrorException(error);
     }
+  }
+
+  @EventPattern('ep_write_wallet')
+  async handleWriteWallet(@Payload() data: any) {
+    console.log('OKE');
+    // try {
+    const transactionDto: CreateTransactionRequestDto = {
+      customer_id: data.customer_id,
+      transaction_type: data.transaction_type,
+      transaction_description: data.transaction_description,
+      amount: data.amount,
+    };
+    const newTransaction = await this.appService.createNewTransaction(
+      transactionDto,
+    );
+    this.logger.log(
+      `[EventPattern ep_write_wallet] Write transaction ${newTransaction.transaction_id} successfully`,
+    );
+    // } catch (error) {
+    //   this.logger.log(`[EventPattern ep_write_wallet] ${error}`);
+    //   throw new InternalServerErrorException('Unknown error');
+    // }
   }
 }
