@@ -1,9 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { WalletDto } from '../request/wallet.dto';
+import { WalletTransaction } from 'src/entity/wallet-transaction.entity';
 import { BaseResponseDto } from './base.response.dto';
 
-export class ManyTransactionsResponseDto extends BaseResponseDto {
-  constructor(statusCode: number, message: string, data: WalletDto[]) {
+export class ResultTransactionsResponseDto extends BaseResponseDto {
+  constructor(statusCode: number, message: string, data: WalletTransaction[]) {
     super(statusCode, message);
     this.data = data;
   }
@@ -17,6 +17,6 @@ export class ManyTransactionsResponseDto extends BaseResponseDto {
   })
   message: string;
 
-  @ApiProperty({ type: WalletDto })
-  data: WalletDto[];
+  @ApiProperty({ type: WalletTransaction })
+  data: WalletTransaction[];
 }

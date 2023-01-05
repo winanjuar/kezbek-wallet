@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
+  IsDate,
   IsEnum,
   IsNotEmpty,
   IsNumber,
@@ -12,7 +13,17 @@ export class CreateTransactionRequestDto {
   @ApiProperty()
   @IsNotEmpty()
   @IsUUID(4)
+  transaction_id: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsUUID(4)
   customer_id: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsDate()
+  transaction_time: Date;
 
   @ApiProperty()
   @IsNotEmpty()

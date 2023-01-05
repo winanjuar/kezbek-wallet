@@ -32,13 +32,13 @@ export class AppService {
       );
     if (!lastActualBalance) {
       const firstActualBalance: Partial<WalletBalanceActual> = {
-        customer_id: currentTransaction.customer_id,
-        last_transaction_id: currentTransaction.transaction_id,
-        last_transaction_time: currentTransaction.transaction_time,
+        customer_id: transactionDto.customer_id,
+        last_transaction_id: transactionDto.transaction_id,
+        last_transaction_time: transactionDto.transaction_time,
         current_balance:
-          currentTransaction.transaction_type === 'IN'
-            ? currentTransaction.amount
-            : -currentTransaction.amount,
+          transactionDto.transaction_type === 'IN'
+            ? transactionDto.amount
+            : -transactionDto.amount,
       };
       await this.walletBalanceActualRepository.createFirstBalance(
         firstActualBalance,
@@ -48,13 +48,13 @@ export class AppService {
       );
 
       const firstCurrentBalance: Partial<WalletBalanceHistory> = {
-        customer_id: currentTransaction.customer_id,
-        transaction_id: currentTransaction.transaction_id,
-        transaction_time: currentTransaction.transaction_time,
+        customer_id: transactionDto.customer_id,
+        transaction_id: transactionDto.transaction_id,
+        transaction_time: transactionDto.transaction_time,
         balance:
-          currentTransaction.transaction_type === 'IN'
-            ? currentTransaction.amount
-            : -currentTransaction.amount,
+          transactionDto.transaction_type === 'IN'
+            ? transactionDto.amount
+            : -transactionDto.amount,
       };
       await this.walletBalanceHistoryRepository.writeCurrentBalance(
         firstCurrentBalance,
@@ -66,14 +66,13 @@ export class AppService {
       delete lastActualBalance.created_at;
       delete lastActualBalance.updated_at;
 
-      lastActualBalance.last_transaction_id = currentTransaction.transaction_id;
-      lastActualBalance.last_transaction_time =
-        currentTransaction.transaction_time;
+      lastActualBalance.last_transaction_id = transactionDto.transaction_id;
+      lastActualBalance.last_transaction_time = transactionDto.transaction_time;
 
-      if (currentTransaction.transaction_type === ETransactionType.IN) {
-        lastActualBalance.current_balance += currentTransaction.amount;
+      if (transactionDto.transaction_type === ETransactionType.IN) {
+        lastActualBalance.current_balance += transactionDto.amount;
       } else {
-        lastActualBalance.current_balance -= currentTransaction.amount;
+        lastActualBalance.current_balance -= transactionDto.amount;
       }
 
       await this.walletBalanceActualRepository.updateExistingBalance(
@@ -82,9 +81,9 @@ export class AppService {
       this.logger.log(`[AppService] Write current actual balance`);
 
       const lastCurrentBalance: Partial<WalletBalanceHistory> = {
-        customer_id: currentTransaction.customer_id,
-        transaction_id: currentTransaction.transaction_id,
-        transaction_time: currentTransaction.transaction_time,
+        customer_id: transactionDto.customer_id,
+        transaction_id: transactionDto.transaction_id,
+        transaction_time: transactionDto.transaction_time,
         balance: lastActualBalance.current_balance,
       };
       await this.walletBalanceHistoryRepository.writeCurrentBalance(

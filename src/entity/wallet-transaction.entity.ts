@@ -3,13 +3,13 @@ import {
   CreateDateColumn,
   Entity,
   Index,
-  PrimaryGeneratedColumn,
+  PrimaryColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
 @Entity('wallet_transaction')
 export class WalletTransaction {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryColumn('uuid')
   transaction_id: string;
 
   @Index()

@@ -10,14 +10,7 @@ export class WalletTransactionRepository extends Repository<WalletTransaction> {
   }
 
   async createNewTransaction(transactionDto: CreateTransactionRequestDto) {
-    const dataTransaction: Partial<WalletTransaction> = {
-      customer_id: transactionDto.customer_id,
-      transaction_time: new Date(),
-      transaction_type: transactionDto.transaction_type,
-      transaction_description: transactionDto.transaction_description,
-      amount: transactionDto.amount,
-    };
-    return await this.save(dataTransaction);
+    return await this.save(transactionDto);
   }
 
   async getLastNTransaction(

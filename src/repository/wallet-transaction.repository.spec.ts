@@ -32,7 +32,9 @@ describe('WalletTransactionRepository', () => {
     it('should return new transaction', async () => {
       // arrange
       const transactionDto: CreateTransactionRequestDto = {
+        transaction_id: faker.datatype.uuid(),
         customer_id: faker.datatype.uuid(),
+        transaction_time: new Date(),
         transaction_type: faker.helpers.arrayElement([
           ETransactionType.IN,
           ETransactionType.OUT,
@@ -41,26 +43,22 @@ describe('WalletTransactionRepository', () => {
         amount: faker.helpers.arrayElement([5000, 7500, 10000]),
       };
 
-      const mockTransaction: WalletTransaction = {
+      const mockTransactionResult: WalletTransaction = {
         ...transactionDto,
-        transaction_id: faker.datatype.uuid(),
-        transaction_time: new Date(),
         created_at: new Date(),
         updated_at: new Date(),
       };
 
       const spySave = jest
         .spyOn(walletTransactionRepository, 'save')
-        .mockResolvedValue(mockTransaction);
+        .mockResolvedValue(mockTransactionResult);
 
       // act
       const newTransaction =
         await walletTransactionRepository.createNewTransaction(transactionDto);
 
       // assert
-      expect(newTransaction).toEqual(mockTransaction);
-      expect(newTransaction.transaction_id).toBeDefined();
-      expect(newTransaction.transaction_time).toBeDefined();
+      expect(newTransaction).toEqual(mockTransactionResult);
       expect(spySave).toHaveBeenCalledTimes(1);
     });
   });
@@ -68,7 +66,7 @@ describe('WalletTransactionRepository', () => {
   describe('getLastNTransaction', () => {
     const customer_id = faker.datatype.uuid();
 
-    const mockTransactions = [];
+    const mockTransactionsResult = [];
     for (let i = 0; i <= 5; i++) {
       const mockTransaction: WalletTransaction = {
         transaction_id: faker.datatype.uuid(),
@@ -83,21 +81,21 @@ describe('WalletTransactionRepository', () => {
         created_at: new Date(),
         updated_at: new Date(),
       };
-      mockTransactions.push(mockTransaction);
+      mockTransactionsResult.push(mockTransaction);
     }
 
     it('should return max 10 data transactions', async () => {
       // arrange
       const spyLastTransaction = jest
         .spyOn(walletTransactionRepository, 'find')
-        .mockResolvedValue(mockTransactions);
+        .mockResolvedValue(mockTransactionsResult);
 
       // act
       const foundTransactions =
         await walletTransactionRepository.getLastNTransaction(customer_id);
 
       // assert
-      expect(foundTransactions).toEqual(mockTransactions);
+      expect(foundTransactions).toEqual(mockTransactionsResult);
       expect(foundTransactions.length).toBeLessThanOrEqual(10);
       expect(spyLastTransaction).toHaveBeenCalledTimes(1);
       expect(spyLastTransaction).toHaveBeenCalledWith({
@@ -113,7 +111,7 @@ describe('WalletTransactionRepository', () => {
 
       const spyLastTransaction = jest
         .spyOn(walletTransactionRepository, 'find')
-        .mockResolvedValue(mockTransactions);
+        .mockResolvedValue(mockTransactionsResult);
 
       // act
       const foundTransactions =
@@ -123,7 +121,7 @@ describe('WalletTransactionRepository', () => {
         );
 
       // assert
-      expect(foundTransactions).toEqual(mockTransactions);
+      expect(foundTransactions).toEqual(mockTransactionsResult);
       expect(foundTransactions.length).toBeLessThanOrEqual(total_required);
       expect(spyLastTransaction).toHaveBeenCalledTimes(1);
       expect(spyLastTransaction).toHaveBeenCalledWith({

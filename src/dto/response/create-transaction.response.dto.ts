@@ -1,6 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { WalletTransaction } from 'src/entity/wallet-transaction.entity';
-import { WalletDto } from '../request/wallet.dto';
 import { BaseResponseDto } from './base.response.dto';
 
 export class CreateTransactionResponseDto extends BaseResponseDto {

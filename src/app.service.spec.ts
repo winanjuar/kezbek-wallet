@@ -60,8 +60,12 @@ describe('AppService', () => {
     let mockActualBalance: WalletBalanceActual;
 
     beforeEach(async () => {
+      const customer_id = faker.datatype.uuid();
+
       transactionDto = {
-        customer_id: faker.datatype.uuid(),
+        transaction_id: faker.datatype.uuid(),
+        customer_id,
+        transaction_time: new Date(),
         transaction_type: ETransactionType.IN,
         transaction_description: 'Unit test wallet',
         amount: faker.helpers.arrayElement([5000, 7500, 10000]),
@@ -69,17 +73,15 @@ describe('AppService', () => {
 
       mockTransaction = {
         ...transactionDto,
-        transaction_id: faker.datatype.uuid(),
-        transaction_time: new Date(),
         created_at: new Date(),
         updated_at: new Date(),
       };
 
       mockActualBalance = {
-        customer_id: mockTransaction.customer_id,
-        last_transaction_id: mockTransaction.transaction_id,
-        last_transaction_time: mockTransaction.transaction_time,
-        current_balance: mockTransaction.amount,
+        customer_id,
+        last_transaction_id: faker.datatype.uuid(),
+        last_transaction_time: new Date(),
+        current_balance: faker.helpers.arrayElement([50000, 25000, 100000]),
         updated_at: new Date(),
         created_at: new Date(),
       };
@@ -102,8 +104,6 @@ describe('AppService', () => {
 
       // assert
       expect(newTransaction).toEqual(mockTransaction);
-      expect(newTransaction.transaction_id).toBeDefined();
-      expect(newTransaction.transaction_time).toBeDefined();
       expect(spyCreateNewTransaction).toHaveBeenCalledTimes(1);
       expect(spyCreateNewTransaction).toHaveBeenCalledWith(transactionDto);
       expect(spyGetActualBalanceByCustomerId).toHaveBeenCalledTimes(1);
@@ -131,8 +131,6 @@ describe('AppService', () => {
 
       // assert
       expect(newTransaction).toEqual(mockTransaction);
-      expect(newTransaction.transaction_id).toBeDefined();
-      expect(newTransaction.transaction_time).toBeDefined();
       expect(spyCreateNewTransaction).toHaveBeenCalledTimes(1);
       expect(spyCreateNewTransaction).toHaveBeenCalledWith(transactionDto);
       expect(spyGetActualBalanceByCustomerId).toHaveBeenCalledTimes(1);
@@ -155,8 +153,6 @@ describe('AppService', () => {
 
       // assert
       expect(newTransaction).toEqual(mockTransaction);
-      expect(newTransaction.transaction_id).toBeDefined();
-      expect(newTransaction.transaction_time).toBeDefined();
       expect(spyCreateNewTransaction).toHaveBeenCalledTimes(1);
       expect(spyCreateNewTransaction).toHaveBeenCalledWith(transactionDto);
       expect(spyGetActualBalanceByCustomerId).toHaveBeenCalledTimes(1);
