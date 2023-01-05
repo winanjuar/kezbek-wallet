@@ -54,7 +54,7 @@ export class AppController {
       );
     } catch (error) {
       this.logger.log(`[POST, /] ${error}`);
-      throw new InternalServerErrorException(error);
+      throw new InternalServerErrorException();
     }
   }
 
@@ -78,7 +78,7 @@ export class AppController {
       );
     } catch (error) {
       this.logger.log(`[POST, /last-transaction] ${error}`);
-      throw new InternalServerErrorException(error);
+      throw new InternalServerErrorException();
     }
   }
 
@@ -97,7 +97,7 @@ export class AppController {
         transactionDto,
       );
       this.logger.log(
-        `[EventPattern ep_write_wallet] Write transaction ${newTransaction.transaction_id} successfully`,
+        `[EventPattern ep_write_wallet] [${newTransaction.transaction_id}] Write transaction successfully`,
       );
     } catch (error) {
       this.logger.log(`[EventPattern ep_write_wallet] ${error}`);
