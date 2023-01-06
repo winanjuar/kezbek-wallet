@@ -24,6 +24,8 @@ import { ResultTransactionsResponseDto } from './dto/response/result-transaction
 import { BadRequestResponseDto } from './dto/response/bad-request.response.dto';
 import { InternalServerErrorDto } from './dto/response/internal-server-error.response.dto';
 import { NotFoundResponseDto } from './dto/response/not-found.response.dto';
+import { IWalletData } from './core/wallet-data.interface';
+import { ETransactionType } from './core/type-transaction.enum';
 
 @ApiTags('Wallet')
 @Controller({ version: '1' })
@@ -83,21 +85,19 @@ export class AppController {
   }
 
   @EventPattern('ep_write_wallet')
-  async handleWriteWallet(@Payload() data: any) {
+  async handleWriteWallet(@Payload() data: IWalletData) {
     try {
       const transactionDto: CreateTransactionRequestDto = {
         transaction_id: data.transaction_id,
         customer_id: data.customer_id,
         transaction_time: data.transaction_time,
-        transaction_type: data.transaction_type,
-        transaction_description: data.transaction_description,
+        transaction_type: ETransactionType.IN,
+        transaction_description: 'KezBekPoint',
         amount: data.amount,
       };
-      const newTransaction = await this.appService.createNewTransaction(
-        transactionDto,
-      );
+      const wallet = await this.appService.createNewTransaction(transactionDto);
       this.logger.log(
-        `[EventPattern ep_write_wallet] [${newTransaction.transaction_id}] Write transaction successfully`,
+        `[EventPattern ep_write_wallet] [${wallet.transaction_id}] Write wallet successfully`,
       );
     } catch (error) {
       this.logger.log(`[EventPattern ep_write_wallet] ${error}`);
