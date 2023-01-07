@@ -22,7 +22,7 @@ import { GetTransactionRequestDto } from './dto/request/get-transaction.request.
 import { CreateTransactionResponseDto } from './dto/response/create-transaction.response.dto';
 import { ResultTransactionsResponseDto } from './dto/response/result-transactions.response.dto';
 import { BadRequestResponseDto } from './dto/response/bad-request.response.dto';
-import { InternalServerErrorDto } from './dto/response/internal-server-error.response.dto';
+import { InternalServerErrorResponseDto } from './dto/response/internal-server-error.response.dto';
 import { NotFoundResponseDto } from './dto/response/not-found.response.dto';
 import { IWalletData } from './core/wallet-data.interface';
 import { ETransactionType } from './core/type-transaction.enum';
@@ -38,7 +38,7 @@ export class AppController {
   @ApiBody({ type: CreateTransactionRequestDto })
   @ApiOkResponse({ type: CreateTransactionResponseDto })
   @ApiBadRequestResponse({ type: BadRequestResponseDto })
-  @ApiInternalServerErrorResponse({ type: InternalServerErrorDto })
+  @ApiInternalServerErrorResponse({ type: InternalServerErrorResponseDto })
   @Post()
   async newTransaction(@Body() transactionDto: CreateTransactionRequestDto) {
     try {
@@ -63,7 +63,7 @@ export class AppController {
   @ApiOkResponse({ type: ResultTransactionsResponseDto })
   @ApiBadRequestResponse({ type: BadRequestResponseDto })
   @ApiNotFoundResponse({ type: NotFoundResponseDto })
-  @ApiInternalServerErrorResponse({ type: InternalServerErrorDto })
+  @ApiInternalServerErrorResponse({ type: InternalServerErrorResponseDto })
   @Post('last-transaction')
   async retriveTransactions(@Body() transactionDto: GetTransactionRequestDto) {
     try {

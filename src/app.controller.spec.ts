@@ -168,7 +168,7 @@ describe('AppController', () => {
         customer_id: faker.datatype.uuid(),
         transaction_time: new Date(),
         transaction_type: ETransactionType.IN,
-        transaction_description: 'Unit test wallet',
+        transaction_description: 'KezBekPoint',
         amount: faker.helpers.arrayElement([5000, 7500, 10000]),
       };
 
