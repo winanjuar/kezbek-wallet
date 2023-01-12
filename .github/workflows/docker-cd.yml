@@ -35,6 +35,6 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           push: true
-          tags: sugengwin/kezbek-customer:latest
+          tags: sugengwin/kezbek-wallet:latest
           file: Dockerfile
       
