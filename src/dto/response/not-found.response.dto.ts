@@ -6,7 +6,7 @@ export class NotFoundResponseDto extends BaseResponseDto {
   statusCode: number;
 
   @ApiProperty({
-    example: `Customer with id 67746a2b-d693-47e1-99f5-f44572aee306 doesn't exist`,
+    example: `This is sample message not found`,
   })
   message: string;
 
