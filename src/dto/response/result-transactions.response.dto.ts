@@ -12,7 +12,7 @@ export class ResultTransactionsResponseDto extends BaseResponseDto {
   statusCode: number;
 
   @ApiProperty({
-    example: 'This is sample get single data successfully',
+    example: 'This is sample get multi data successfully',
   })
   message: string;
 

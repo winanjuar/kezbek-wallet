@@ -86,7 +86,7 @@ describe('WalletTransactionRepository', () => {
 
     it('should return max 10 data transactions', async () => {
       // arrange
-      const spyLastTransaction = jest
+      const spyFind = jest
         .spyOn(walletTransactionRepository, 'find')
         .mockResolvedValue(mockTransactionsResult);
 
@@ -97,8 +97,8 @@ describe('WalletTransactionRepository', () => {
       // assert
       expect(foundTransactions).toEqual(mockTransactionsResult);
       expect(foundTransactions.length).toBeLessThanOrEqual(10);
-      expect(spyLastTransaction).toHaveBeenCalledTimes(1);
-      expect(spyLastTransaction).toHaveBeenCalledWith({
+      expect(spyFind).toHaveBeenCalledTimes(1);
+      expect(spyFind).toHaveBeenCalledWith({
         where: { customer_id },
         take: 10,
         order: { transaction_time: 'DESC' },
@@ -109,7 +109,7 @@ describe('WalletTransactionRepository', () => {
       // arrange
       const total_required = 15;
 
-      const spyLastTransaction = jest
+      const spyFind = jest
         .spyOn(walletTransactionRepository, 'find')
         .mockResolvedValue(mockTransactionsResult);
 
@@ -123,8 +123,8 @@ describe('WalletTransactionRepository', () => {
       // assert
       expect(foundTransactions).toEqual(mockTransactionsResult);
       expect(foundTransactions.length).toBeLessThanOrEqual(total_required);
-      expect(spyLastTransaction).toHaveBeenCalledTimes(1);
-      expect(spyLastTransaction).toHaveBeenCalledWith({
+      expect(spyFind).toHaveBeenCalledTimes(1);
+      expect(spyFind).toHaveBeenCalledWith({
         where: { customer_id },
         take: total_required,
         order: { transaction_time: 'DESC' },
@@ -133,7 +133,7 @@ describe('WalletTransactionRepository', () => {
 
     it('should return empty array when not found transactions', async () => {
       // arrange
-      const spyLastTransaction = jest
+      const spyFind = jest
         .spyOn(walletTransactionRepository, 'find')
         .mockResolvedValue([]);
 
@@ -144,8 +144,8 @@ describe('WalletTransactionRepository', () => {
       // assert
       expect(foundTransactions).toEqual([]);
       expect(foundTransactions.length).toEqual(0);
-      expect(spyLastTransaction).toHaveBeenCalledTimes(1);
-      expect(spyLastTransaction).toHaveBeenCalledWith({
+      expect(spyFind).toHaveBeenCalledTimes(1);
+      expect(spyFind).toHaveBeenCalledWith({
         where: { customer_id },
         take: 10,
         order: { transaction_time: 'DESC' },

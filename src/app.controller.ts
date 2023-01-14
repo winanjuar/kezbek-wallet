@@ -6,7 +6,7 @@ import {
   Logger,
   Post,
 } from '@nestjs/common';
-import { EventPattern, Payload } from '@nestjs/microservices';
+import { EventPattern, MessagePattern, Payload } from '@nestjs/microservices';
 import {
   ApiBadRequestResponse,
   ApiBody,
@@ -26,6 +26,10 @@ import { InternalServerErrorResponseDto } from './dto/response/internal-server-e
 import { NotFoundResponseDto } from './dto/response/not-found.response.dto';
 import { IWalletData } from './core/wallet-data.interface';
 import { ETransactionType } from './core/type-transaction.enum';
+import { EPatternMessage } from './core/pattern-message.enum';
+import { IResponseBalanceActual } from './core/response-info-balace-actual.interface';
+import { IRequestIdCustomer } from './core/request-id-customer.interface';
+import { ResultBalanceHistoryResponseDto } from './dto/response/result-balance-history.response.dto';
 
 @ApiTags('Wallet')
 @Controller({ version: '1' })
@@ -39,23 +43,24 @@ export class AppController {
   @ApiOkResponse({ type: CreateTransactionResponseDto })
   @ApiBadRequestResponse({ type: BadRequestResponseDto })
   @ApiInternalServerErrorResponse({ type: InternalServerErrorResponseDto })
-  @Post()
+  @Post('try-new-transaction')
   async newTransaction(@Body() transactionDto: CreateTransactionRequestDto) {
+    const logIdentifier = 'POST try-new-transaction';
     try {
       const newTransaction = await this.appService.createNewTransaction(
         transactionDto,
       );
       this.logger.log(
-        `[POST, /] Write transaction ${newTransaction.transaction_id} of customer ${newTransaction.customer_id} successfully`,
+        `[${logIdentifier}] [${newTransaction.transaction_id}] Write transaction wallet successfully`,
       );
 
       return new CreateTransactionResponseDto(
         HttpStatus.OK,
-        `Create transaction successfully`,
+        `Write transaction wallet successfully`,
         newTransaction,
       );
     } catch (error) {
-      this.logger.log(`[POST, /] ${error}`);
+      this.logger.log(`[${logIdentifier}] ${error}`);
       throw new InternalServerErrorException();
     }
   }
@@ -64,27 +69,79 @@ export class AppController {
   @ApiBadRequestResponse({ type: BadRequestResponseDto })
   @ApiNotFoundResponse({ type: NotFoundResponseDto })
   @ApiInternalServerErrorResponse({ type: InternalServerErrorResponseDto })
-  @Post('last-transaction')
+  @Post('try-get-last-transaction')
   async retriveTransactions(@Body() transactionDto: GetTransactionRequestDto) {
+    const logIdentifier = 'POST try-get-last-transaction';
     try {
       const transactions = await this.appService.getLastTransactions(
         transactionDto,
       );
       this.logger.log(
-        `[POST, /last-transaction] Retrive last transactions of customer ${transactionDto.customer_id} successfully`,
+        `[${logIdentifier}] [${transactionDto.customer_id}] Get last transactions successfully`,
       );
       return new ResultTransactionsResponseDto(
         HttpStatus.OK,
-        `Get data last transaction customer with ID ${transactionDto.customer_id} successfully`,
+        `Get last transactions successfully`,
         transactions,
       );
     } catch (error) {
-      this.logger.log(`[POST, /last-transaction] ${error}`);
+      this.logger.log(`[${logIdentifier}] ${error}`);
       throw new InternalServerErrorException();
     }
   }
 
-  @EventPattern('ep_write_wallet')
+  @ApiOkResponse({ type: ResultTransactionsResponseDto })
+  @ApiBadRequestResponse({ type: BadRequestResponseDto })
+  @ApiNotFoundResponse({ type: NotFoundResponseDto })
+  @ApiInternalServerErrorResponse({ type: InternalServerErrorResponseDto })
+  @Post('try-get-last-balance-history')
+  async retriveBalanceHistory(
+    @Body() transactionDto: GetTransactionRequestDto,
+  ) {
+    const logIdentifier = 'POST try-get-last-balance-history';
+    try {
+      const balanceHistory = await this.appService.getLastBalanceHistory(
+        transactionDto,
+      );
+      this.logger.log(
+        `[${logIdentifier}] [${transactionDto.customer_id}] Get last balance history successfully`,
+      );
+      return new ResultBalanceHistoryResponseDto(
+        HttpStatus.OK,
+        `Get last balance history successfully`,
+        balanceHistory,
+      );
+    } catch (error) {
+      this.logger.log(`[${logIdentifier}] ${error}`);
+      throw new InternalServerErrorException();
+    }
+  }
+
+  @MessagePattern(EPatternMessage.INFO_BALANCE_WALLET)
+  async handleInfoBalanceWallet(@Payload() data: IRequestIdCustomer) {
+    try {
+      const customer_id = data.customer_id;
+      const balance = await this.appService.getBalanceActual(customer_id);
+      this.logger.log(
+        `[${EPatternMessage.INFO_BALANCE_WALLET}] [${customer_id}] Get current balance successfully`,
+      );
+      if (!balance) {
+        return {
+          customer_id,
+          current_balance: 0,
+        } as IResponseBalanceActual;
+      }
+      return {
+        customer_id,
+        current_balance: balance.current_balance,
+      } as IResponseBalanceActual;
+    } catch (error) {
+      this.logger.log(`[${EPatternMessage.INFO_BALANCE_WALLET}] ${error}`);
+      throw new InternalServerErrorException();
+    }
+  }
+
+  @EventPattern(EPatternMessage.WRITE_WALLET)
   async handleWriteWallet(@Payload() data: IWalletData) {
     try {
       const transactionDto: CreateTransactionRequestDto = {
@@ -97,10 +154,10 @@ export class AppController {
       };
       const wallet = await this.appService.createNewTransaction(transactionDto);
       this.logger.log(
-        `[EventPattern ep_write_wallet] [${wallet.transaction_id}] Write wallet successfully`,
+        `[${EPatternMessage.WRITE_WALLET}] [${wallet.transaction_id}] Write wallet successfully`,
       );
     } catch (error) {
-      this.logger.log(`[EventPattern ep_write_wallet] ${error}`);
+      this.logger.log(`[${EPatternMessage.WRITE_WALLET}] ${error}`);
       throw new InternalServerErrorException();
     }
   }

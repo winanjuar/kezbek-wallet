@@ -56,4 +56,89 @@ describe('WalletBalanceHistoryRepository', () => {
       expect(spySave).toHaveBeenCalledWith(data);
     });
   });
+
+  describe('getLastNBalance', () => {
+    const customer_id = faker.datatype.uuid();
+
+    const mockBalanceHistoryResult = [];
+    for (let i = 0; i <= 5; i++) {
+      const mockBalanceHistory: WalletBalanceHistory = {
+        transaction_id: faker.datatype.uuid(),
+        transaction_time: new Date(),
+        customer_id,
+        balance: faker.datatype.number(),
+        created_at: new Date(),
+        updated_at: new Date(),
+      };
+      mockBalanceHistoryResult.push(mockBalanceHistory);
+    }
+
+    it('should return max 10 data balance history', async () => {
+      // arrange
+      const spyFind = jest
+        .spyOn(walletBalanceHistoryRepository, 'find')
+        .mockResolvedValue(mockBalanceHistoryResult);
+
+      // act
+      const foundBalanceHistory =
+        await walletBalanceHistoryRepository.getLastNBalance(customer_id);
+
+      // assert
+      expect(foundBalanceHistory).toEqual(mockBalanceHistoryResult);
+      expect(foundBalanceHistory.length).toBeLessThanOrEqual(10);
+      expect(spyFind).toHaveBeenCalledTimes(1);
+      expect(spyFind).toHaveBeenCalledWith({
+        where: { customer_id },
+        take: 10,
+        order: { transaction_time: 'DESC' },
+      });
+    });
+
+    it('should return max n data balance history', async () => {
+      // arrange
+      const total_required = 15;
+
+      const spyFind = jest
+        .spyOn(walletBalanceHistoryRepository, 'find')
+        .mockResolvedValue(mockBalanceHistoryResult);
+
+      // act
+      const foundBalanceHistory =
+        await walletBalanceHistoryRepository.getLastNBalance(
+          customer_id,
+          total_required,
+        );
+
+      // assert
+      expect(foundBalanceHistory).toEqual(mockBalanceHistoryResult);
+      expect(foundBalanceHistory.length).toBeLessThanOrEqual(total_required);
+      expect(spyFind).toHaveBeenCalledTimes(1);
+      expect(spyFind).toHaveBeenCalledWith({
+        where: { customer_id },
+        take: total_required,
+        order: { transaction_time: 'DESC' },
+      });
+    });
+
+    it('should return empty array when not found balance history', async () => {
+      // arrange
+      const spyFind = jest
+        .spyOn(walletBalanceHistoryRepository, 'find')
+        .mockResolvedValue([]);
+
+      // act
+      const foundBalanceHistory =
+        await walletBalanceHistoryRepository.getLastNBalance(customer_id);
+
+      // assert
+      expect(foundBalanceHistory).toEqual([]);
+      expect(foundBalanceHistory.length).toEqual(0);
+      expect(spyFind).toHaveBeenCalledTimes(1);
+      expect(spyFind).toHaveBeenCalledWith({
+        where: { customer_id },
+        take: 10,
+        order: { transaction_time: 'DESC' },
+      });
+    });
+  });
 });

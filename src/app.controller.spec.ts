@@ -8,7 +8,9 @@ import { ETransactionType } from './core/type-transaction.enum';
 import { CreateTransactionRequestDto } from './dto/request/create-transaction.request.dto';
 import { GetTransactionRequestDto } from './dto/request/get-transaction.request.dto';
 import { CreateTransactionResponseDto } from './dto/response/create-transaction.response.dto';
+import { ResultBalanceHistoryResponseDto } from './dto/response/result-balance-history.response.dto';
 import { ResultTransactionsResponseDto } from './dto/response/result-transactions.response.dto';
+import { WalletBalanceActual } from './entity/wallet-balance-actual.entity';
 import { WalletTransaction } from './entity/wallet-transaction.entity';
 
 describe('AppController', () => {
@@ -17,13 +19,17 @@ describe('AppController', () => {
   let getTransactionDto: GetTransactionRequestDto;
 
   let mockTransaction: WalletTransaction;
+  let mockBalanceActual: WalletBalanceActual;
 
   let createTransactionResponse: CreateTransactionResponseDto;
   let resultTransactionResponse: ResultTransactionsResponseDto;
+  let resultBalanceHistory: ResultBalanceHistoryResponseDto;
 
   const mockAppService = {
     createNewTransaction: jest.fn(),
+    getBalanceActual: jest.fn(),
     getLastTransactions: jest.fn(),
+    getLastBalanceHistory: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -63,7 +69,7 @@ describe('AppController', () => {
 
       createTransactionResponse = new CreateTransactionResponseDto(
         HttpStatus.OK,
-        `Create transaction successfully`,
+        `Write transaction wallet successfully`,
         mockTransaction,
       );
 
@@ -124,7 +130,7 @@ describe('AppController', () => {
 
       resultTransactionResponse = new ResultTransactionsResponseDto(
         HttpStatus.OK,
-        `Get data last transaction customer with ID ${getTransactionDto.customer_id} successfully`,
+        `Get last transactions successfully`,
         mockResultLastTransactions,
       );
 
@@ -157,6 +163,149 @@ describe('AppController', () => {
       );
       expect(spyGetLastTransactions).toHaveBeenCalledTimes(1);
       expect(spyGetLastTransactions).toHaveBeenCalledWith(getTransactionDto);
+    });
+  });
+
+  describe('retriveBalanceHistory', () => {
+    it('should response many balance history customer', async () => {
+      // arrange
+      getTransactionDto = {
+        customer_id: faker.datatype.uuid(),
+        total: 9,
+      };
+
+      const mockResultBalanceHistory = [
+        {
+          transaction_id: faker.datatype.uuid(),
+          transaction_time: new Date(),
+          customer_id: getTransactionDto.customer_id,
+          balance: faker.datatype.number(),
+          created_at: new Date(),
+          updated_at: new Date(),
+        },
+      ];
+
+      const spyGetLastBalanceHistory = jest
+        .spyOn(mockAppService, 'getLastBalanceHistory')
+        .mockResolvedValue(mockResultBalanceHistory);
+
+      resultBalanceHistory = new ResultBalanceHistoryResponseDto(
+        HttpStatus.OK,
+        `Get last balance history successfully`,
+        mockResultBalanceHistory,
+      );
+
+      // act
+      const response = await controller.retriveBalanceHistory(
+        getTransactionDto,
+      );
+
+      // assert
+      expect(response).toEqual(resultBalanceHistory);
+      expect(spyGetLastBalanceHistory).toHaveBeenCalledTimes(1);
+      expect(spyGetLastBalanceHistory).toHaveBeenCalledWith(getTransactionDto);
+    });
+
+    it('should throw internal server error when unknown error occured', async () => {
+      // arrange
+      getTransactionDto = {
+        customer_id: faker.datatype.uuid(),
+      };
+
+      const spyGetLastBalanceHistory = jest
+        .spyOn(mockAppService, 'getLastBalanceHistory')
+        .mockRejectedValue(new InternalServerErrorException());
+
+      // act
+      const funRetriveBalanceHistory =
+        controller.retriveBalanceHistory(getTransactionDto);
+
+      // assert
+      await expect(funRetriveBalanceHistory).rejects.toEqual(
+        new InternalServerErrorException(),
+      );
+      expect(spyGetLastBalanceHistory).toHaveBeenCalledTimes(1);
+      expect(spyGetLastBalanceHistory).toHaveBeenCalledWith(getTransactionDto);
+    });
+  });
+
+  describe('handleInfoBalanceWallet', () => {
+    it('should response current balance customer', async () => {
+      // arrange
+      const data = {
+        customer_id: faker.datatype.uuid(),
+      };
+
+      mockBalanceActual = {
+        customer_id: data.customer_id,
+        last_transaction_id: faker.datatype.uuid(),
+        last_transaction_time: new Date(),
+        current_balance: faker.helpers.arrayElement([5000, 7500, 10000]),
+        created_at: new Date(),
+        updated_at: new Date(),
+      };
+
+      const spyGetBalanceActual = jest
+        .spyOn(mockAppService, 'getBalanceActual')
+        .mockResolvedValue(mockBalanceActual);
+
+      const mockResult = {
+        customer_id: data.customer_id,
+        current_balance: mockBalanceActual.current_balance,
+      };
+
+      // act
+      const balance = await controller.handleInfoBalanceWallet(data);
+
+      // assert
+      expect(balance).toEqual(mockResult);
+      expect(spyGetBalanceActual).toHaveBeenCalledTimes(1);
+      expect(spyGetBalanceActual).toHaveBeenCalledWith(data.customer_id);
+    });
+
+    it('should return current balance 0 when does not have balance', async () => {
+      // arrange
+      const data = {
+        customer_id: faker.datatype.uuid(),
+      };
+
+      const spyGetBalanceActual = jest
+        .spyOn(mockAppService, 'getBalanceActual')
+        .mockResolvedValue(null);
+
+      const mockResult = {
+        customer_id: data.customer_id,
+        current_balance: 0,
+      };
+
+      // act
+      const balance = await controller.handleInfoBalanceWallet(data);
+
+      // assert
+      expect(balance).toEqual(mockResult);
+      expect(spyGetBalanceActual).toHaveBeenCalledTimes(1);
+      expect(spyGetBalanceActual).toHaveBeenCalledWith(data.customer_id);
+    });
+
+    it('should throw internal server error when unknown error occured', async () => {
+      // arrange
+      const data = {
+        customer_id: faker.datatype.uuid(),
+      };
+
+      const spyGetBalanceActual = jest
+        .spyOn(mockAppService, 'getBalanceActual')
+        .mockRejectedValue(new InternalServerErrorException());
+
+      // act
+      const funHandleInfoBalanceWallet =
+        controller.handleInfoBalanceWallet(data);
+
+      // assert
+      await expect(funHandleInfoBalanceWallet).rejects.toEqual(
+        new InternalServerErrorException(),
+      );
+      expect(spyGetBalanceActual).toHaveBeenCalledTimes(1);
     });
   });
 

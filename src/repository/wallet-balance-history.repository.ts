@@ -13,4 +13,15 @@ export class WalletBalanceHistoryRepository extends Repository<WalletBalanceHist
   ): Promise<WalletBalanceHistory> {
     return await this.save(data);
   }
+
+  async getLastNBalance(
+    customer_id: string,
+    total?: number,
+  ): Promise<WalletBalanceHistory[]> {
+    return await this.find({
+      where: { customer_id },
+      take: total ? total : 10,
+      order: { transaction_time: 'DESC' },
+    });
+  }
 }

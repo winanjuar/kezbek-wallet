@@ -18,6 +18,7 @@ describe('AppService', () => {
 
   const mockBalanceHistoryRepo = {
     writeCurrentBalance: jest.fn(),
+    getLastNBalance: jest.fn(),
   };
 
   const mockTransactionRepo = {
@@ -109,6 +110,33 @@ describe('AppService', () => {
       expect(spyGetActualBalanceByCustomerId).toHaveBeenCalledTimes(1);
     });
 
+    it('should return new transaction just created, add current balance because transaction type is IN', async () => {
+      // arrange
+      transactionDto.transaction_type = ETransactionType.IN;
+      mockTransaction.transaction_type = transactionDto.transaction_type;
+
+      const spyCreateNewTransaction = jest
+        .spyOn(mockTransactionRepo, 'createNewTransaction')
+        .mockResolvedValue(mockTransaction);
+
+      const spyGetActualBalanceByCustomerId = jest
+        .spyOn(mockBalanceActualRepo, 'getActualBalanceByCustomerId')
+        .mockResolvedValue(mockActualBalance);
+
+      mockActualBalance.current_balance += transactionDto.amount;
+
+      // act
+      const newTransaction = await appService.createNewTransaction(
+        transactionDto,
+      );
+
+      // assert
+      expect(newTransaction).toEqual(mockTransaction);
+      expect(spyCreateNewTransaction).toHaveBeenCalledTimes(1);
+      expect(spyCreateNewTransaction).toHaveBeenCalledWith(transactionDto);
+      expect(spyGetActualBalanceByCustomerId).toHaveBeenCalledTimes(1);
+    });
+
     it('should return new transaction just created, substrack current balance because transaction type is OUT', async () => {
       // arrange
       transactionDto.transaction_type = ETransactionType.OUT;
@@ -137,6 +165,32 @@ describe('AppService', () => {
     });
 
     it('should return new transaction just created, and insert to actual and history for first time', async () => {
+      // arrange
+      transactionDto.transaction_type = ETransactionType.OUT;
+
+      const spyCreateNewTransaction = jest
+        .spyOn(mockTransactionRepo, 'createNewTransaction')
+        .mockResolvedValue(mockTransaction);
+
+      const spyGetActualBalanceByCustomerId = jest
+        .spyOn(mockBalanceActualRepo, 'getActualBalanceByCustomerId')
+        .mockResolvedValue(null);
+
+      mockActualBalance.current_balance = -transactionDto.amount;
+
+      // act
+      const newTransaction = await appService.createNewTransaction(
+        transactionDto,
+      );
+
+      // assert
+      expect(newTransaction).toEqual(mockTransaction);
+      expect(spyCreateNewTransaction).toHaveBeenCalledTimes(1);
+      expect(spyCreateNewTransaction).toHaveBeenCalledWith(transactionDto);
+      expect(spyGetActualBalanceByCustomerId).toHaveBeenCalledTimes(1);
+    });
+
+    it('should return new transaction just created, and insert to actual and history for first time with transaction type OUT', async () => {
       // arrange
       const spyCreateNewTransaction = jest
         .spyOn(mockTransactionRepo, 'createNewTransaction')
@@ -244,6 +298,88 @@ describe('AppService', () => {
         new NotFoundException(`Customer still doesn't have any transactions`),
       );
       expect(spyGetLastNTransaction).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('getLastBalanceHistory', () => {
+    const customer_id = faker.datatype.uuid();
+
+    const transactionDto: GetTransactionRequestDto = {
+      customer_id,
+      total: faker.datatype.number({ min: 1 }),
+    };
+
+    it('should return max n data balance history', async () => {
+      // arrange
+      const mockResultNBalanceHistory = [
+        {
+          transaction_id: faker.datatype.uuid(),
+          customer_id,
+          transaction_time: new Date(),
+          balance: faker.datatype.number(),
+          created_at: new Date(),
+          updated_at: new Date(),
+        },
+      ];
+
+      const spyGetLastNBalance = jest
+        .spyOn(mockBalanceHistoryRepo, 'getLastNBalance')
+        .mockResolvedValue(mockResultNBalanceHistory);
+
+      // act
+      const transactions = await appService.getLastBalanceHistory(
+        transactionDto,
+      );
+
+      // assert
+      expect(transactions).toEqual(mockResultNBalanceHistory);
+      expect(spyGetLastNBalance).toHaveBeenCalledTimes(1);
+    });
+
+    it('should return max 10 balance history when not send total', async () => {
+      // arrange
+      delete transactionDto.total;
+
+      const mockResultNBalanceHistory = [
+        {
+          transaction_id: faker.datatype.uuid(),
+          customer_id,
+          transaction_time: new Date(),
+          balance: faker.datatype.number(),
+          created_at: new Date(),
+          updated_at: new Date(),
+        },
+      ];
+
+      const spyGetLastNBalance = jest
+        .spyOn(mockBalanceHistoryRepo, 'getLastNBalance')
+        .mockResolvedValue(mockResultNBalanceHistory);
+
+      // act
+      const transactions = await appService.getLastBalanceHistory(
+        transactionDto,
+      );
+
+      // assert
+      expect(transactions).toEqual(mockResultNBalanceHistory);
+      expect(spyGetLastNBalance).toHaveBeenCalledTimes(1);
+    });
+
+    it('should throw not found exception', async () => {
+      // arrange
+      const spyGetLastNBalance = jest
+        .spyOn(mockBalanceHistoryRepo, 'getLastNBalance')
+        .mockResolvedValue([]);
+
+      // act
+      const funGetLastBalanceHistory =
+        appService.getLastBalanceHistory(transactionDto);
+
+      // assert
+      await expect(funGetLastBalanceHistory).rejects.toEqual(
+        new NotFoundException(`Customer still doesn't have any transactions`),
+      );
+      expect(spyGetLastNBalance).toHaveBeenCalledTimes(1);
     });
   });
 });

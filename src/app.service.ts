@@ -26,10 +26,9 @@ export class AppService {
       await this.walletTransactionRepository.createNewTransaction(
         transactionDto,
       );
-    const lastActualBalance =
-      await this.walletBalanceActualRepository.getActualBalanceByCustomerId(
-        transactionDto.customer_id,
-      );
+    const lastActualBalance = await this.getBalanceActual(
+      transactionDto.customer_id,
+    );
     if (!lastActualBalance) {
       const firstActualBalance: Partial<WalletBalanceActual> = {
         customer_id: transactionDto.customer_id,
@@ -44,7 +43,7 @@ export class AppService {
         firstActualBalance,
       );
       this.logger.log(
-        `[AppService] Write current actual balance for the first time`,
+        `[${transactionDto.transaction_id}] Write current actual balance for the first time`,
       );
 
       const firstCurrentBalance: Partial<WalletBalanceHistory> = {
@@ -60,7 +59,7 @@ export class AppService {
         firstCurrentBalance,
       );
       this.logger.log(
-        `[AppService] Write current history balance for the first time`,
+        `[${transactionDto.transaction_id}] Write current history balance for the first time`,
       );
     } else {
       delete lastActualBalance.created_at;
@@ -78,7 +77,9 @@ export class AppService {
       await this.walletBalanceActualRepository.updateExistingBalance(
         lastActualBalance,
       );
-      this.logger.log(`[AppService] Write current actual balance`);
+      this.logger.log(
+        `[${transactionDto.transaction_id}] Write current actual balance`,
+      );
 
       const lastCurrentBalance: Partial<WalletBalanceHistory> = {
         customer_id: transactionDto.customer_id,
@@ -89,7 +90,9 @@ export class AppService {
       await this.walletBalanceHistoryRepository.writeCurrentBalance(
         lastCurrentBalance,
       );
-      this.logger.log(`[AppService] Write current history balance`);
+      this.logger.log(
+        `[${transactionDto.transaction_id}] Write current history balance`,
+      );
     }
 
     return currentTransaction;
@@ -118,5 +121,36 @@ export class AppService {
       );
     }
     return lastTransactions;
+  }
+
+  async getLastBalanceHistory(
+    transactionDto: GetTransactionRequestDto,
+  ): Promise<WalletBalanceHistory[]> {
+    let lastBalanceHistory: WalletBalanceHistory[];
+    if (transactionDto.total) {
+      lastBalanceHistory =
+        await this.walletBalanceHistoryRepository.getLastNBalance(
+          transactionDto.customer_id,
+          transactionDto.total,
+        );
+    } else {
+      lastBalanceHistory =
+        await this.walletBalanceHistoryRepository.getLastNBalance(
+          transactionDto.customer_id,
+        );
+    }
+
+    if (lastBalanceHistory.length === 0) {
+      throw new NotFoundException(
+        `Customer still doesn't have any transactions`,
+      );
+    }
+    return lastBalanceHistory;
+  }
+
+  async getBalanceActual(customer_id: string) {
+    return await this.walletBalanceActualRepository.getActualBalanceByCustomerId(
+      customer_id,
+    );
   }
 }
