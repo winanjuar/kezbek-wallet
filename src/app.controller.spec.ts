@@ -1,5 +1,9 @@
 import { faker } from '@faker-js/faker';
-import { HttpStatus, InternalServerErrorException } from '@nestjs/common';
+import {
+  HttpStatus,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 
 import { AppController } from './app.controller';
@@ -143,6 +147,28 @@ describe('AppController', () => {
       expect(spyGetLastTransactions).toHaveBeenCalledWith(getTransactionDto);
     });
 
+    it('should throw data not found', async () => {
+      // arrange
+      getTransactionDto = {
+        customer_id: faker.datatype.uuid(),
+      };
+
+      const spyGetLastTransactions = jest
+        .spyOn(mockAppService, 'getLastTransactions')
+        .mockRejectedValue(new NotFoundException());
+
+      // act
+      const retriveTransactions =
+        controller.retriveTransactions(getTransactionDto);
+
+      // assert
+      await expect(retriveTransactions).rejects.toEqual(
+        new NotFoundException(),
+      );
+      expect(spyGetLastTransactions).toHaveBeenCalledTimes(1);
+      expect(spyGetLastTransactions).toHaveBeenCalledWith(getTransactionDto);
+    });
+
     it('should throw internal server error when unknown error occured', async () => {
       // arrange
       getTransactionDto = {
@@ -202,6 +228,28 @@ describe('AppController', () => {
 
       // assert
       expect(response).toEqual(resultBalanceHistory);
+      expect(spyGetLastBalanceHistory).toHaveBeenCalledTimes(1);
+      expect(spyGetLastBalanceHistory).toHaveBeenCalledWith(getTransactionDto);
+    });
+
+    it('should throw data not found', async () => {
+      // arrange
+      getTransactionDto = {
+        customer_id: faker.datatype.uuid(),
+      };
+
+      const spyGetLastBalanceHistory = jest
+        .spyOn(mockAppService, 'getLastBalanceHistory')
+        .mockRejectedValue(new NotFoundException());
+
+      // act
+      const funRetriveBalanceHistory =
+        controller.retriveBalanceHistory(getTransactionDto);
+
+      // assert
+      await expect(funRetriveBalanceHistory).rejects.toEqual(
+        new NotFoundException(),
+      );
       expect(spyGetLastBalanceHistory).toHaveBeenCalledTimes(1);
       expect(spyGetLastBalanceHistory).toHaveBeenCalledWith(getTransactionDto);
     });

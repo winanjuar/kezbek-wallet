@@ -295,7 +295,7 @@ describe('AppService', () => {
 
       // assert
       await expect(funGetLastTransactions).rejects.toEqual(
-        new NotFoundException(`Customer still doesn't have any transactions`),
+        new NotFoundException(`Data not found`),
       );
       expect(spyGetLastNTransaction).toHaveBeenCalledTimes(1);
     });
@@ -377,7 +377,7 @@ describe('AppService', () => {
 
       // assert
       await expect(funGetLastBalanceHistory).rejects.toEqual(
-        new NotFoundException(`Customer still doesn't have any transactions`),
+        new NotFoundException(`Data not found`),
       );
       expect(spyGetLastNBalance).toHaveBeenCalledTimes(1);
     });

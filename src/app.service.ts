@@ -116,9 +116,7 @@ export class AppService {
     }
 
     if (lastTransactions.length === 0) {
-      throw new NotFoundException(
-        `Customer still doesn't have any transactions`,
-      );
+      throw new NotFoundException(`Data not found`);
     }
     return lastTransactions;
   }
@@ -141,9 +139,7 @@ export class AppService {
     }
 
     if (lastBalanceHistory.length === 0) {
-      throw new NotFoundException(
-        `Customer still doesn't have any transactions`,
-      );
+      throw new NotFoundException(`Data not found`);
     }
     return lastBalanceHistory;
   }

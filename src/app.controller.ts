@@ -4,6 +4,7 @@ import {
   HttpStatus,
   InternalServerErrorException,
   Logger,
+  NotFoundException,
   Post,
 } from '@nestjs/common';
 import { EventPattern, MessagePattern, Payload } from '@nestjs/microservices';
@@ -86,7 +87,11 @@ export class AppController {
       );
     } catch (error) {
       this.logger.log(`[${logIdentifier}] ${error}`);
-      throw new InternalServerErrorException();
+      if (error.response.statusCode === 404) {
+        throw new NotFoundException(error.response.message);
+      } else {
+        throw new InternalServerErrorException(error.response.message);
+      }
     }
   }
 
@@ -113,7 +118,11 @@ export class AppController {
       );
     } catch (error) {
       this.logger.log(`[${logIdentifier}] ${error}`);
-      throw new InternalServerErrorException();
+      if (error.response.statusCode === 404) {
+        throw new NotFoundException(error.response.message);
+      } else {
+        throw new InternalServerErrorException(error.response.message);
+      }
     }
   }
 
