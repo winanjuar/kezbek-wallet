@@ -72,7 +72,7 @@ describe('AppController', () => {
         .mockResolvedValue(mockTransaction);
 
       createTransactionResponse = new CreateTransactionResponseDto(
-        HttpStatus.OK,
+        HttpStatus.CREATED,
         `Write transaction wallet successfully`,
         mockTransaction,
       );
