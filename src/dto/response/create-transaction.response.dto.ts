@@ -8,7 +8,7 @@ export class CreateTransactionResponseDto extends BaseResponseDto {
     this.data = data;
   }
 
-  @ApiProperty({ example: 200 })
+  @ApiProperty({ example: 201 })
   statusCode: number;
 
   @ApiProperty({

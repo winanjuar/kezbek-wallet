@@ -11,6 +11,7 @@ import { EventPattern, MessagePattern, Payload } from '@nestjs/microservices';
 import {
   ApiBadRequestResponse,
   ApiBody,
+  ApiCreatedResponse,
   ApiInternalServerErrorResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
@@ -41,7 +42,7 @@ export class AppController {
   constructor(private readonly appService: AppService) {}
 
   @ApiBody({ type: CreateTransactionRequestDto })
-  @ApiOkResponse({ type: CreateTransactionResponseDto })
+  @ApiCreatedResponse({ type: CreateTransactionResponseDto })
   @ApiBadRequestResponse({ type: BadRequestResponseDto })
   @ApiInternalServerErrorResponse({ type: InternalServerErrorResponseDto })
   @Post('try-new-transaction')
@@ -56,7 +57,7 @@ export class AppController {
       );
 
       return new CreateTransactionResponseDto(
-        HttpStatus.OK,
+        HttpStatus.CREATED,
         `Write transaction wallet successfully`,
         newTransaction,
       );
